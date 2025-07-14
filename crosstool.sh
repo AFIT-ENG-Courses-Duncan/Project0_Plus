@@ -8,6 +8,10 @@
 # Exit immediately if a command exits with a non-zero status.
 # Treat unset variables as an error.
 # The return value of a pipeline is the status of the last command to exit with a non-zero status.
+
+# [INFO] Preparing build directory: /home/osc/crosstool-build
+# [WARN ]  Directory '/home/osc/crosstool-build/downloads' does not exist.
+# [WARN ]  Will not save downloaded tarballs to local storage.
 set -euo pipefail
 
 # --- Configuration ---

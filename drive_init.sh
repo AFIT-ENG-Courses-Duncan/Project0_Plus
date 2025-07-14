@@ -8,6 +8,7 @@
 # 3. Formats the new partition with the ext4 filesystem.
 # 4. Moves the existing /home directory contents to the new partition.
 # 5. Configures /etc/fstab to mount the new partition at /home persistently.
+# 6. TODO: Configure /etc/fstab to mount space on the new partition at /tmp persistently.
 #
 # WARNING: This script is destructive and will format an entire disk.
 # It is intended for use in a controlled environment like a new VM setup.
