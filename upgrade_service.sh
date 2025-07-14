@@ -31,6 +31,7 @@ next_lts() {
 
 setup_cache_binds() {
   $USE_CACHE_DRIVE || return 0
+  mkdir -p "$CACHE_MOUNT"
   mountpoint -q "$CACHE_MOUNT" || mount "$CACHE_DEVICE" "$CACHE_MOUNT"
   for dir in apt-archives tmp var-tmp; do
     mkdir -p "$CACHE_MOUNT/$dir"
@@ -39,6 +40,7 @@ setup_cache_binds() {
   mount --bind "$CACHE_MOUNT/tmp"          /tmp
   mount --bind "$CACHE_MOUNT/var-tmp"      /var/tmp
 }
+
 
 create_service() {
 cat > "$SERVICE" <<EOF
@@ -94,10 +96,13 @@ main() {
   fi
 
   local next; next=$(next_lts "$ver") || die "Unsupported start version $ver."
+  mkdir -p "$(dirname "$STATE")"
   echo "$next" > "$STATE"
   upgrade_steps "$ver" "$next"
   log "Rebooting to complete $ver → $next …"
   reboot
 }
+
+
 
 main "$@"
