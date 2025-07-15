@@ -2,14 +2,17 @@
 # ---------------------------------------------------------------------------
 # auto-lts-upgrade.sh
 # One-shot Ubuntu 16.04 → 20.04 unattended upgrader with automatic resume.
+# Monitor status with journalctl -u lts-upgrader.service -f
+# or tail -f /var/log/lts-upgrader.log
+# or systemctl status lts-upgrader.service
 # ---------------------------------------------------------------------------
-# TODO: How can we log the output of this script to a file? How can we check the status of the upgrade while it is in progress after the script has been run and the system has rebooted then resumed as a service?
 set -euo pipefail
 
 readonly TARGET="20.04"
 readonly SELF="/usr/local/bin/lts-upgrader.sh"
 readonly SERVICE="/etc/systemd/system/lts-upgrader.service"
 readonly STATE="/var/lib/lts-upgrade/state"
+readonly LOG_FILE="/var/log/lts-upgrader.log"
 
 # ───── OPTIONAL: enable if you already created a cache drive ─────────────── #
 USE_CACHE_DRIVE=true     # set to "false" to skip bind mounts on each boot
@@ -17,8 +20,12 @@ CACHE_DEVICE="/dev/sdb1"
 CACHE_MOUNT="/mnt/upgrade-cache"
 # -------------------------------------------------------------------------- #
 
-log() { printf "\e[32m[*] %s\e[0m\n" "$*"; }
-die() { printf "\e[31m[!] %s\e[0m\n" "$*" >&2; exit 1; }
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [*] $*"
+}
+die() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [!] $*" >&2; exit 1;
+}
 
 require_root() [[ $EUID -eq 0 ]] || die "Run as root."
 
@@ -55,9 +62,10 @@ Wants=network-online.target
 [Service]
 Type=simple
 ExecStart=$SELF --resume
+StandardOutput=append:$LOG_FILE
+StandardError=append:$LOG_FILE
 TimeoutSec=infinity
-Restart=on-failure
-
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -70,20 +78,51 @@ disable_service() {
   rm -f "$SERVICE" "$STATE"
 }
 
-# TODO: We need to check to see if a reboot is required before upgrading within this step. Here is an example of the output that indicates this status:
-# -- Checking for a new Ubuntu release
-# -- You have not rebooted after updating a package which requires a reboot. Please reboot before upgrading.
-# We can check this by looking for the file /var/run/reboot-required ?
-# The function should implement the check and reboot automatically if needed.
 upgrade_steps() {
   local from="$1" to="$2"
+
+  if [[ -f /var/run/reboot-required ]]; then
+    log "System requires a reboot before proceeding. Rebooting now..."
+    # The service will restart the script after the reboot.
+    reboot
+    exit 0
+  fi
+
   log "Upgrading $from → $to …"
+  log "Detailed logs for the release upgrade will be in /var/log/dist-upgrade/"
   export DEBIAN_FRONTEND=noninteractive
+
+  # --- Pre-configure GRUB to prevent interactive prompts ---
+  # Find the boot disk (e.g., /dev/sda) from the root partition.
+  # This prevents dpkg from halting on a GRUB configuration prompt during the upgrade.
+  log "Attempting to pre-configure GRUB install device..."
+  local root_part boot_disk
+  root_part=$(findmnt -n -o SOURCE /)
+  # lsblk -no pkname gives the parent kernel name (the disk) for a partition.
+  boot_disk="/dev/$(lsblk -no pkname "$root_part" 2>/dev/null || echo "")"
+
+  if [[ -z "$boot_disk" || ! -b "$boot_disk" ]]; then
+      log "Warning: Could not determine boot disk. Unattended GRUB install may fail."
+  else
+      log "Pre-configuring GRUB to install to '$boot_disk' to prevent interactive prompts."
+      # Pre-answer the questions for both MBR (grub-pc) and EFI (grub-efi) installs.
+      echo "grub-pc grub-pc/install_devices multiselect $boot_disk" | debconf-set-selections
+      echo "grub-efi-amd64 grub-efi/install_devices multiselect $boot_disk" | debconf-set-selections
+  fi
+  # ---------------------------------------------------------
+
   apt-get update
   apt-get -y upgrade
   apt-get -y dist-upgrade
   apt-get -y autoremove
   sed -i 's/^Prompt=.*/Prompt=lts/' /etc/update-manager/release-upgrades
+
+  if [[ -f /var/run/reboot-required ]]; then
+    log "System requires a reboot before proceeding. Rebooting now..."
+    # The service will restart the script after the reboot.
+    reboot
+    exit 0
+  fi
   do-release-upgrade -f DistUpgradeViewNonInteractive
 }
 
