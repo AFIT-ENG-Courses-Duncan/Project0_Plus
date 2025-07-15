@@ -61,9 +61,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=$SELF --resume
-StandardOutput=append:$LOG_FILE
-StandardError=append:$LOG_FILE
+ExecStart=/bin/bash -c "$SELF --resume >> $LOG_FILE 2>&1"
 TimeoutSec=infinity
 Restart=no
 [Install]
