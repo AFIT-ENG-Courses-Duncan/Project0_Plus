@@ -12,9 +12,10 @@ DEVICE="/dev/sdb1"
 # Mount point for the cache drive
 CACHE_MOUNT="/mnt/upgrade-cache"
 # Sub-directories on that drive
-APT_CACHE_DIR="${CACHE_MOUNT}/apt-archives"
-TMP_DIR="${CACHE_MOUNT}/tmp"          # comment out if you don't want /tmp offloaded
-VAR_TMP_DIR="${CACHE_MOUNT}/var-tmp"  # comment out if you don't want /var/tmp offloaded
+CACHE_ROOT="/upgrade-cache"
+APT_CACHE_DIR="${CACHE_MOUNT}${CACHE_ROOT}/apt-archives"
+TMP_DIR="${CACHE_MOUNT}${CACHE_ROOT}/tmp"          # comment out if you don't want /tmp offloaded
+VAR_TMP_DIR="${CACHE_MOUNT}${CACHE_ROOT}/var-tmp"  # comment out if you don't want /var/tmp offloaded
 # Filesystem type on $DEVICE (ext4 recommended)
 FSTYPE="ext4"
 # --------------------------------------------------------------------------- ##
@@ -60,6 +61,7 @@ mount_cache_drive() {
 create_dirs() {
   mkdir -p "$APT_CACHE_DIR"
   mkdir -p "$TMP_DIR" "$VAR_TMP_DIR"
+  sudo chmod 1777 "$TMP_DIR"
 }
 
 move_existing_cache() {
