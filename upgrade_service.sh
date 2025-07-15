@@ -3,6 +3,7 @@
 # auto-lts-upgrade.sh
 # One-shot Ubuntu 16.04 → 20.04 unattended upgrader with automatic resume.
 # ---------------------------------------------------------------------------
+# TODO: How can we log the output of this script to a file? How can we check the status of the upgrade while it is in progress after the script has been run and the system has rebooted then resumed as a service?
 set -euo pipefail
 
 readonly TARGET="20.04"
@@ -69,6 +70,11 @@ disable_service() {
   rm -f "$SERVICE" "$STATE"
 }
 
+# TODO: We need to check to see if a reboot is required before upgrading within this step. Here is an example of the output that indicates this status:
+# -- Checking for a new Ubuntu release
+# -- You have not rebooted after updating a package which requires a reboot. Please reboot before upgrading.
+# We can check this by looking for the file /var/run/reboot-required ?
+# The function should implement the check and reboot automatically if needed.
 upgrade_steps() {
   local from="$1" to="$2"
   log "Upgrading $from → $to …"
@@ -88,7 +94,7 @@ main() {
     create_service
   }
 
-  setup_cache_binds
+  #setup_cache_binds
 
   local ver; ver=$(get_ver)
   if dpkg --compare-versions "$ver" ge "$TARGET"; then
