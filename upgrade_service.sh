@@ -39,6 +39,8 @@ setup_cache_binds() {
   mount --bind "$CACHE_MOUNT/apt-archives" /var/cache/apt/archives
   mount --bind "$CACHE_MOUNT/tmp"          /tmp
   mount --bind "$CACHE_MOUNT/var-tmp"      /var/tmp
+  sudo chmod 1777 "$CACHE_MOUNT/tmp"
+
 }
 
 

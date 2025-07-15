@@ -44,4 +44,9 @@ uname -r
 ** Need kernel > 4.18
 See: https://askubuntu.com/questions/517136/list-of-ubuntu-versions-with-corresponding-linux-kernel-version
 Can we use do-release-upgrade to upgrade Ubuntu 16.04.5 LTS to Ubuntu 18.10?
+-- No, we can only use do-release-upgrade to walk through LTS versions...
+
+
+
 running crosstool.sh to build glibc version that should be compatible with VSCode Extension
+** Build appears to time out...??? May be increase cpus / ram on the VM for this step if needed after the upgrade?
