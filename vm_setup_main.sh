@@ -30,11 +30,11 @@ readonly LOG_FILE="/var/log/vm-setup-orchestrator.log"
 
 # RUNTIME_SCRIPTS will be a list of scripts that will be run at runtime.
 readonly RUNTIME_SCRIPTS=(
-    "setup_drive_initialization.sh"
-    "setup_network_configuration.sh"
-    "setup_upgrade_cache.sh"
+    "drive_init.sh"
+    "network_init.sh"
+    "configure-upgrade-cache.sh"
     "upgrade_service.sh"
-    "setup_class_dependencies.sh"
+    "class_dependencies.sh"
 )
 # This directory contains the setup scripts for the class project.
 # It should be relative to the current working directory.
