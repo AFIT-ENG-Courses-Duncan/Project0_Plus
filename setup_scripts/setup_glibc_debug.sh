@@ -3,6 +3,10 @@
 # This script automates the setup for debugging glibc source code in VS Code.
 # It installs the necessary packages, unpacks the source code, and creates
 # a suitable .vscode/launch.json configuration.
+#
+# See also:
+# https://code.visualstudio.com/docs/cpp/cpp-debug
+# https://github.com/AFIT-ENG-Courses-Duncan/CSCE489_Project1/blob/AB_Solution2/Notes/chat_configure_debugging.json
 
 set -e # Exit immediately if a command fails.
 
