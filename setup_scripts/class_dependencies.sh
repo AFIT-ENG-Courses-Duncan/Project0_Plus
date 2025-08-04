@@ -12,7 +12,7 @@ set -euo pipefail
 
 # --- Configuration ---
 #APT_PACKAGES will be a list of packages to install via apt-get.
-APT_PACKAGES="gcc g++ gdb gdbteams build-essential libpthread-stubs0-dev glibc-source"
+APT_PACKAGES="gcc g++ gdb gdbteams build-essential libpthread-stubs0-dev glibc-source python3.8-venv"
 # --- Helper Functions ---
 log_info() {
     echo "[INFO] $1"
